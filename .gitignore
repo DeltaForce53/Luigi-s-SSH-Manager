@@ -1,6 +1,24 @@
+# --- Environnement Virtuel ---
 venv/
+ENV/
+env/
+
+# --- Python (Fichiers temporaires) ---
 __pycache__/
+*.py[cod]
+*$py.class
+
+# --- Compilation (PyInstaller) ---
+# On ignore les dossiers de construction de l'exécutable
 build/
 dist/
 *.spec
+
+# --- Données Personnelles ---
+# IMPORTANT : On ne veut pas envoyer tes adresses IP et logins sur GitHub
 connections.json
+
+# --- Divers ---
+.vscode/
+.idea/
+.DS_Store
