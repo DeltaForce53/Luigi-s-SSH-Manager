@@ -105,7 +105,7 @@ def se_connecter():
 def menu():
     while True:
         print("\n" + "=" * 25)
-        print("   Luigi's SSH Manager 🚀")
+        print("   Luigi's SSH Manager (je changerai le nom plus tard)")
         print("=" * 25)
         print("1. Se connecter")
         print("2. Ajouter une connexion")
