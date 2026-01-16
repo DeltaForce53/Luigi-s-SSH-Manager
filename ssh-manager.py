@@ -1,137 +1,198 @@
 #!/usr/bin/env python3
 import json
-import os
 import subprocess
 import sys
+from pathlib import Path
 
-# Nom du fichier où seront stockées les connexions
-DB_FILE = "connections.json"
+import keyring
+import questionary
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+
+# Initialisation de la console Rich pour les couleurs et styles
+console = Console()
+
+# Configuration des chemins (Stockage dans le dossier utilisateur)
+DB_DIR = Path.home() / ".luigissh"
+DB_DIR.mkdir(exist_ok=True)
+DB_FILE = DB_DIR / "connections.json"
 
 
 def charger_connexions():
-    if not os.path.exists(DB_FILE):
+    """Charge les données du fichier JSON."""
+    if not DB_FILE.exists():
         return {}
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except (json.JSONDecodeError, IOError):
+    except Exception:
         return {}
 
 
 def sauvegarder_connexions(connexions):
+    """Sauvegarde les données dans le fichier JSON."""
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(connexions, f, indent=4)
 
 
 def ajouter_connexion():
-    print("\n--- ➕ Ajouter une connexion ---")
-    nom = input("Nom (ex: Serveur-Web) : ")
-    ip = input("Adresse IP ou Host : ")
-    user = input("Nom d'utilisateur : ")
+    """Interface stylisée pour ajouter un serveur."""
+    console.print(
+        Panel("[bold green]➕ AJOUTER UN NOUVEAU SERVEUR[/bold green]", expand=False)
+    )
+
+    nom = questionary.text("Nom de la connexion (ex: Serveur-Web) :").ask()
+    if not nom:
+        return
+
+    ip = questionary.text("Adresse IP ou Hostname :").ask()
+    user = questionary.text("Nom d'utilisateur :").ask()
+    port = questionary.text("Port (par défaut 22) :", default="22").ask()
+
+    methode = questionary.select(
+        "Méthode d'authentification :",
+        choices=[
+            "Mot de passe (Sécurisé par Keyring)",
+            "Clé SSH (Fichier .pem/.pub)",
+            "Aucune / Agent SSH",
+        ],
+    ).ask()
+
+    path_cle = ""
+    if methode == "Mot de passe (Sécurisé par Keyring)":
+        pwd = questionary.password("Entrez le mot de passe :").ask()
+        if pwd:
+            keyring.set_password("luigissh", nom, pwd)
+    elif methode == "Clé SSH (Fichier .pem/.pub)":
+        path_cle = questionary.text("Chemin complet vers la clé :").ask()
 
     connexions = charger_connexions()
-    connexions[nom] = {"ip": ip, "user": user}
+    connexions[nom] = {"ip": ip, "user": user, "port": port, "key_path": path_cle}
     sauvegarder_connexions(connexions)
-    print(f"✅ '{nom}' enregistré !")
+    console.print(
+        f"\n[bold green]✅ '{nom}' a été configuré avec succès ![/bold green]\n"
+    )
 
 
-def supprimer_connexion():
+def afficher_liste():
+    """Affiche un beau tableau des serveurs enregistrés."""
     connexions = charger_connexions()
     if not connexions:
-        print("❌ Aucune connexion à supprimer.")
+        console.print("[yellow]Aucune connexion enregistrée.[/yellow]")
         return
 
-    print("\n--- 🗑️ Supprimer une connexion ---")
-    liste_noms = list(connexions.keys())
-    for i, nom in enumerate(liste_noms, 1):
-        print(f"{i}. {nom}")
+    table = Table(
+        title="📋 Liste des Serveurs", header_style="bold magenta", border_style="blue"
+    )
+    table.add_column("Nom", style="cyan", no_wrap=True)
+    table.add_column("Utilisateur", style="green")
+    table.add_column("Hôte", style="white")
+    table.add_column("Port", style="dim")
+    table.add_column("Auth", style="italic")
 
-    choix = input("\nNuméro à supprimer (ou 'q') : ")
-    if choix.isdigit() and 0 < int(choix) <= len(liste_noms):
-        nom_a_suppr = liste_noms[int(choix) - 1]
-        del connexions[nom_a_suppr]
-        sauvegarder_connexions(connexions)
-        print(f"🗑️ '{nom_a_suppr}' a été supprimé.")
+    for nom, info in connexions.items():
+        auth = "🔑 Clé" if info.get("key_path") else "🔒 Pwd/Agent"
+        table.add_row(nom, info["user"], info["ip"], info["port"], auth)
 
-
-def modifier_connexion():
-    connexions = charger_connexions()
-    if not connexions:
-        print("❌ Aucune connexion à modifier.")
-        return
-
-    print("\n--- ✏️ Modifier une connexion ---")
-    liste_noms = list(connexions.keys())
-    for i, nom in enumerate(liste_noms, 1):
-        print(f"{i}. {nom}")
-
-    choix = input("\nNuméro à modifier (ou 'q') : ")
-    if choix.isdigit() and 0 < int(choix) <= len(liste_noms):
-        ancien_nom = liste_noms[int(choix) - 1]
-        info = connexions[ancien_nom]
-
-        print(f"Modif de {ancien_nom} (Laissez vide pour garder l'actuel)")
-        nouvel_ip = input(f"Nouvel IP [{info['ip']}] : ") or info["ip"]
-        nouveau_user = input(f"Nouvel User [{info['user']}] : ") or info["user"]
-
-        connexions[ancien_nom] = {"ip": nouvel_ip, "user": nouveau_user}
-        sauvegarder_connexions(connexions)
-        print(f"✅ '{ancien_nom}' mis à jour !")
+    console.print(table)
 
 
 def se_connecter():
+    """Menu interactif pour lancer une session SSH."""
     connexions = charger_connexions()
     if not connexions:
-        print("❌ Aucune connexion enregistrée.")
+        console.print("[bold red]Erreur : Aucun serveur trouvé.[/bold red]")
         return
 
-    print("\n--- 🚀 Connexions Disponibles ---")
-    liste_noms = list(connexions.keys())
-    for i, nom in enumerate(liste_noms, 1):
-        print(f"{i}. {nom} ({connexions[nom]['user']}@{connexions[nom]['ip']})")
+    choix = questionary.select(
+        "🚀 Vers quelle destination voulez-vous aller ?",
+        choices=list(connexions.keys()) + [questionary.Separator(), "🔙 Retour"],
+    ).ask()
 
-    choix = input("\nChoisir le numéro (ou 'q') : ")
-    if choix.isdigit() and 0 < int(choix) <= len(liste_noms):
-        cible = connexions[liste_noms[int(choix) - 1]]
+    if choix and choix != "🔙 Retour":
+        cible = connexions[choix]
+        cmd = ["ssh", f"{cible['user']}@{cible['ip']}", "-p", cible["port"]]
 
-        # Environnement UTF-8 pour les icônes eza
-        env_ssh = os.environ.copy()
-        env_ssh["LC_ALL"] = "en_US.UTF-8"
-        env_ssh["LANG"] = "en_US.UTF-8"
+        if cible.get("key_path"):
+            cmd.extend(["-i", cible["key_path"]])
 
-        subprocess.run(["ssh", f"{cible['user']}@{cible['ip']}"], env=env_ssh)
+        console.print(
+            Panel(
+                f"[bold yellow]Connexion en cours vers {choix}...[/]",
+                border_style="yellow",
+            )
+        )
+
+        # Note : On laisse SSH gérer la demande de mot de passe interactivement.
+        # Keyring est utilisé ici pour la gestion future ou pour des scripts automatisés.
+        try:
+            subprocess.run(cmd)
+        except Exception as e:
+            console.print(f"[bold red]Erreur lors de la connexion : {e}[/bold red]")
 
 
-def menu():
+def supprimer_connexion():
+    """Supprime proprement une connexion et son secret."""
+    connexions = charger_connexions()
+    choix = questionary.select(
+        "Sélectionnez le serveur à supprimer :", choices=list(connexions.keys())
+    ).ask()
+
+    if choix:
+        confirm = questionary.confirm(
+            f"Êtes-vous sûr de vouloir supprimer {choix} ?"
+        ).ask()
+        if confirm:
+            del connexions[choix]
+            sauvegarder_connexions(connexions)
+            try:
+                keyring.delete_password("luigissh", choix)
+            except:
+                pass
+            console.print(f"[red]🗑️ {choix} supprimé.[/red]")
+
+
+def menu_principal():
+    """Boucle principale du gestionnaire."""
     while True:
-        print("\n" + "=" * 25)
-        print("   Luigi's SSH Manager (je changerai le nom plus tard)")
-        print("=" * 25)
-        print("1. Se connecter")
-        print("2. Ajouter une connexion")
-        print("3. Modifier une connexion")
-        print("4. Supprimer une connexion")
-        print("5. Quitter")
+        console.print("\n")
+        action = questionary.select(
+            "Luigi SSH Manager - Menu",
+            choices=[
+                "🚀 Se connecter",
+                "📋 Voir la liste",
+                "➕ Ajouter un serveur",
+                "🗑️ Supprimer un serveur",
+                "❌ Quitter",
+            ],
+            style=questionary.Style(
+                [
+                    ("pointer", "fg:#00ff00 bold"),
+                    ("highlighted", "fg:#00ff00 bold"),
+                ]
+            ),
+        ).ask()
 
-        choix = input("\nAction : ")
-
-        if choix == "1":
+        if action == "🚀 Se connecter":
             se_connecter()
-        elif choix == "2":
+        elif action == "📋 Voir la liste":
+            afficher_liste()
+        elif action == "➕ Ajouter un serveur":
             ajouter_connexion()
-        elif choix == "3":
-            modifier_connexion()
-        elif choix == "4":
+        elif action == "🗑️ Supprimer un serveur":
             supprimer_connexion()
-        elif choix == "5":
+        elif action == "❌ Quitter":
+            console.print("[italic]À bientôt Luigi ![/italic]")
             break
-        else:
-            print("❌ Option invalide.")
 
 
 if __name__ == "__main__":
+    # Correction encodage Windows
     if sys.platform == "win32":
         import codecs
 
         sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
-    menu()
+
+    menu_principal()
