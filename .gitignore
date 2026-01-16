@@ -1,18 +1,28 @@
+# --- Environnement Virtuel ---
+.venv/
 venv/
-ENV/
 env/
+ENV/
 
-# --- Python (temp files) ---
+# --- Compilation PyInstaller ---
+# On ignore les dossiers de travail de PyInstaller, mais pas nécessairement le dossier dist si tu veux le partager
+build/
+dist/
+*.spec
+
+# --- Données du projet (IMPORTANT) ---
+# On ne veut PAS envoyer tes adresses IP et noms de serveurs sur le dépôt
+connections.json
+.luigissh/
+
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
 
-
-# --- Personnal Datas ---
-
-connections.json
-
-# --- Misc ---
+# --- Système & IDE ---
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
