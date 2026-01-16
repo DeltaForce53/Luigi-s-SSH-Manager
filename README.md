@@ -35,5 +35,5 @@ pip install -r requirements.txt
 4. Build the .exe file :
 
 ```python
-pyinstaller --onefile --windowed main.py
+pyinstaller --onefile --windowed ssh-manager.py
 ```
