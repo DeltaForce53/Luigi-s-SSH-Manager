@@ -1,4 +1,4 @@
-# Luigi-s-SSH-Manager
+# Luigi's-SSH-Manager
 My personal ssh manager optimized for Windows.
 
 A simple SSH Manager built in Python.
