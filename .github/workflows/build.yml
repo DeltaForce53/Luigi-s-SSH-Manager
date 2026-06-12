@@ -40,6 +40,11 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: go build -o luigi-ssh-manager.exe main.go
 
+    - name: Build Installer (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
     - name: Build Executable (macOS)
       if: matrix.os == 'macos-latest'
       run: go build -o luigi-ssh-manager-macos main.go
@@ -53,7 +58,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: luigi-ssh-manager-windows
-        path: luigi-ssh-manager.exe
+        path: dist/LuigiSSHManager-Setup.exe
 
     - name: Upload Artifact (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -85,7 +90,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          artifacts/luigi-ssh-manager-windows/luigi-ssh-manager.exe
+          artifacts/luigi-ssh-manager-windows/LuigiSSHManager-Setup.exe
           artifacts/luigi-ssh-manager-linux/luigi-ssh-manager-linux
           artifacts/luigi-ssh-manager-macos/luigi-ssh-manager-macos
         generate_release_notes: true
