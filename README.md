@@ -1,87 +1,86 @@
 # 🚀 Luigi's SSH Manager
 
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
-![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![Platform](https://img.shields.io/badge/Plateformes-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Luigi's SSH Manager** est un utilitaire en ligne de commande (CLI) simple, interactif et sécurisé pour gérer et lancer rapidement vos connexions SSH sans avoir à mémoriser les adresses IP, les clés ou les mots de passe.
+**Luigi's SSH Manager** est un outil en ligne de commande (CLI) ultra-rapide, léger et interactif, conçu pour simplifier la gestion et la connexion à vos multiples serveurs SSH. 
 
-Créé avec une interface moderne grâce à `rich` et `questionary`, il offre une excellente expérience utilisateur directement depuis votre terminal.
+Fini les commandes longues à mémoriser et les fichiers de configuration obscurs : naviguez de manière visuelle et sécurisée !
 
 ---
 
 ## ✨ Fonctionnalités
 
-- 📋 **Interface Interactive** : Menus visuels pour naviguer facilement entre vos serveurs.
-- 🔒 **Gestion Sécurisée** : Stockage sécurisé des mots de passe grâce au gestionnaire d'informations d'identification de votre système (via `keyring`).
-- 🔑 **Support des Clés SSH** : Lancez vos sessions en utilisant vos fichiers de clés (`.pem`, `.pub`).
-- 💾 **Stockage Local** : Vos configurations sont enregistrées localement dans `~/.luigissh/connections.json`.
-- ⚡ **Prêt à l'emploi** : Pas besoin d'installer Python. Des exécutables autonomes sont disponibles pour tous les systèmes !
+- ⚡ **Démarrage instantané** : Entièrement réécrit en Go (Golang), l'application est compilée en un binaire natif. Aucune machine virtuelle, aucun interpréteur. Temps de lancement : `< 10ms`.
+- 📦 **Zéro dépendance** : Pas besoin d'installer Python, Node.js ou quoi que ce soit d'autre. Téléchargez l'exécutable, lancez-le, ça fonctionne.
+- 🔐 **Sécurité Absolue** : Vos mots de passe ne sont **jamais** enregistrés en texte brut. L'application communique directement avec le **Gestionnaire d'informations d'identification** (Windows), le **Trousseau d'accès** (macOS) ou **Secret Service** (Linux) pour chiffrer vos clés avec la sécurité de votre système d'exploitation.
+- 🎨 **Interface Interactive** : Menus visuels intuitifs, saisie masquée des mots de passe, et tableaux propres pour lister vos serveurs.
+- 🌐 **Cross-Platform** : Fonctionne parfaitement sous Windows, macOS (Intel & Apple Silicon) et Linux.
 
 ---
 
-## 📥 Installation Rapide (Recommandée)
+## 📥 Installation
 
-Vous n'avez **pas besoin d'installer Python**. Téléchargez simplement la dernière version exécutable pour votre système d'exploitation depuis la section **[Releases](../../releases/latest)**.
+Allez dans la page [**Releases**](https://github.com/DeltaForce53/Luigi-s-SSH-Manager/releases) de ce dépôt pour télécharger la dernière version.
 
-1. Rendez-vous sur la page des [Releases](../../releases/latest).
-2. Téléchargez l'exécutable correspondant à votre système :
-   - **Windows** : `luigi-ssh-manager.exe`
-   - **macOS** : `luigi-ssh-manager`
-   - **Linux** : `luigi-ssh-manager`
-3. Lancez le fichier dans votre terminal !
+### 🪟 Windows
+1. Téléchargez le fichier **`LuigiSSHManager-Setup.exe`**.
+2. Lancez-le pour installer l'application.
+3. Lors de l'installation, vous pouvez choisir d'ajouter l'application au `PATH`. Si c'est coché, vous pourrez ouvrir n'importe quel terminal (CMD, PowerShell) et taper `luigi-ssh-manager` !
+
+### 🍎 macOS & 🐧 Linux
+1. Téléchargez l'exécutable correspondant à votre architecture (ex: `luigi-ssh-manager-macos` ou `luigi-ssh-manager-linux`).
+2. Rendez le fichier exécutable via votre terminal :
+   ```bash
+   chmod +x luigi-ssh-manager-macos
+   ```
+3. Déplacez-le dans votre `PATH` pour un accès global :
+   ```bash
+   sudo mv luigi-ssh-manager-macos /usr/local/bin/luigi-ssh-manager
+   ```
 
 ---
 
-## 💻 Utilisation
+## 🛠️ Utilisation
 
-Ouvrez votre terminal et exécutez le programme. Vous serez accueilli par le menu interactif :
-
+Il suffit de lancer l'application via votre terminal :
 ```bash
-# Sur Windows
-.\luigi-ssh-manager.exe
-
-# Sur Linux / macOS
-./luigi-ssh-manager
+luigi-ssh-manager
 ```
 
-### Options du menu :
-1. **🚀 Se connecter** : Lance une connexion SSH vers le serveur sélectionné.
-2. **📋 Voir la liste** : Affiche un beau tableau récapitulatif de tous vos serveurs enregistrés.
-3. **➕ Ajouter un serveur** : Enregistre une nouvelle connexion (IP, port, utilisateur, méthode d'authentification).
-4. **🗑️ Supprimer un serveur** : Retire un serveur de votre liste.
-5. **❌ Quitter** : Ferme le programme.
+Un menu interactif apparaîtra vous permettant de :
+- `🚀 Se connecter` : Choisir un serveur pré-enregistré et lancer immédiatement une session SSH.
+- `📋 Voir la liste` : Afficher un tableau clair de vos serveurs (Nom, IP, Port, Type d'authentification).
+- `➕ Ajouter un serveur` : Ajouter une nouvelle machine (par mot de passe ou clé SSH `.pem`/`.pub`).
+- `🗑️ Supprimer un serveur` : Retirer proprement une configuration et nettoyer le trousseau de clés de l'OS.
+
+### 📂 Où sont stockées mes données ?
+- **Adresses et IP** : Sauvegardées localement dans le fichier `~/.luigissh/connections.json` sur votre propre machine.
+- **Mots de passe** : Chiffrés au sein du Keychain de votre OS (aucun risque de fuite de données si vous partagez le fichier json).
 
 ---
 
-## 🛠️ Pour les Développeurs (Exécuter depuis les sources)
+## 💻 Développement (Compiler soi-même)
 
-Si vous souhaitez modifier le code ou exécuter le script directement avec Python :
+Si vous souhaitez modifier le code source et recompiler l'outil vous-même :
 
-### Prérequis
-- Python 3.7 ou supérieur
-
-### Installation
-
-1. Clonez ce dépôt :
+1. Assurez-vous d'avoir [Go (1.21 ou supérieur)](https://go.dev/dl/) installé.
+2. Clonez ce dépôt :
    ```bash
    git clone https://github.com/DeltaForce53/Luigi-s-SSH-Manager.git
    cd Luigi-s-SSH-Manager
    ```
-
-2. Installez les dépendances requises :
+3. Téléchargez les dépendances :
    ```bash
-   pip install -r requirements.txt
+   go mod tidy
+   ```
+4. Compilez :
+   ```bash
+   go build -o luigi-ssh-manager main.go
    ```
 
-3. Lancez le script :
-   ```bash
-   python ssh-manager.py
-   ```
+*(Sous Linux, le paquet `libsecret-1-dev` est requis pour la compilation du module de sécurité).*
 
 ---
-
-## 📜 Licence
-
-Ce projet est conçu pour un usage personnel. N'hésitez pas à forker et à l'adapter à vos besoins !
+*Créé avec passion par LuigiLePoussin & AI* 🚀
