@@ -26,37 +26,53 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install nuitka pillow
 
-    - name: Build executable
+    - name: Generate Icon
       run: |
-        pyinstaller --name luigi-ssh-manager --onefile ssh-manager.py
+        python generate_icon.py
+
+    - name: Build Executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        python -m nuitka --standalone --onefile --windows-console-mode=force --windows-icon-from-ico=assets/icon.ico --output-filename=luigi-ssh-manager ssh-manager.py
+
+    - name: Build Executable (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        python -m nuitka --standalone --onefile --macos-app-icon=assets/icon.png --output-filename=luigi-ssh-manager ssh-manager.py
+
+    - name: Build Executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        python -m nuitka --standalone --onefile --output-filename=luigi-ssh-manager ssh-manager.py
 
     - name: Upload Artifact (Windows)
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: luigi-ssh-manager-windows
-        path: dist/luigi-ssh-manager.exe
+        path: luigi-ssh-manager.exe
 
     - name: Upload Artifact (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: luigi-ssh-manager-linux
-        path: dist/luigi-ssh-manager
+        path: luigi-ssh-manager.bin
 
     - name: Upload Artifact (macOS)
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: luigi-ssh-manager-macos
-        path: dist/luigi-ssh-manager
+        path: luigi-ssh-manager.bin
 
   release:
     name: Create Release
@@ -75,8 +91,8 @@ jobs:
       with:
         files: |
           artifacts/luigi-ssh-manager-windows/luigi-ssh-manager.exe
-          artifacts/luigi-ssh-manager-linux/luigi-ssh-manager
-          artifacts/luigi-ssh-manager-macos/luigi-ssh-manager
+          artifacts/luigi-ssh-manager-linux/luigi-ssh-manager.bin
+          artifacts/luigi-ssh-manager-macos/luigi-ssh-manager.bin
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
