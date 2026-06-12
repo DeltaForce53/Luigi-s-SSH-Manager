@@ -1,8 +1,10 @@
-name: Build Executables
+name: Build and Release Executables
 
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
 
@@ -52,3 +54,26 @@ jobs:
       with:
         name: luigi-ssh-manager-macos
         path: dist/luigi-ssh-manager
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          artifacts/luigi-ssh-manager-windows/luigi-ssh-manager.exe
+          artifacts/luigi-ssh-manager-linux/luigi-ssh-manager
+          artifacts/luigi-ssh-manager-macos/luigi-ssh-manager
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
