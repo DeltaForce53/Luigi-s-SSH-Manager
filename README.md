@@ -27,7 +27,12 @@ Allez dans la page [**Releases**](https://github.com/DeltaForce53/Luigi-s-SSH-Ma
 ### 🪟 Windows
 1. Téléchargez le fichier **`LuigiSSHManager-Setup.exe`**.
 2. Lancez-le pour installer l'application.
-3. Lors de l'installation, vous pouvez choisir d'ajouter l'application au `PATH`. Si c'est coché, vous pourrez ouvrir n'importe quel terminal (CMD, PowerShell) et taper `luigi-ssh-manager` !
+3. Lors de l'installation, cochez l'option pour ajouter l'application au `PATH`. 
+4. Ouvrez un terminal (CMD ou PowerShell) et lancez simplement :
+   ```powershell
+   luigi-ssh-manager
+   ```
+   *(Astuce : Si vous préférez la commande courte, vous pouvez renommer l'exécutable `luigi-ssh-manager.exe` en `ssh-luigi.exe` dans `C:\Program Files\LuigiSSHManager`)*
 
 ### 🍎 macOS & 🐧 Linux
 1. Téléchargez l'exécutable correspondant à votre architecture (ex: `luigi-ssh-manager-macos` ou `luigi-ssh-manager-linux`).
@@ -35,18 +40,18 @@ Allez dans la page [**Releases**](https://github.com/DeltaForce53/Luigi-s-SSH-Ma
    ```bash
    chmod +x luigi-ssh-manager-macos
    ```
-3. Déplacez-le dans votre `PATH` pour un accès global :
+3. Déplacez-le et renommez-le en `ssh-luigi` dans un dossier appartenant à votre `$PATH` (comme `/usr/local/bin`) pour y avoir accès partout :
    ```bash
-   sudo mv luigi-ssh-manager-macos /usr/local/bin/luigi-ssh-manager
+   sudo mv luigi-ssh-manager-macos /usr/local/bin/ssh-luigi
    ```
 
 ---
 
 ## 🛠️ Utilisation
 
-Il suffit de lancer l'application via votre terminal :
+Il suffit de lancer l'application via votre terminal avec la commande :
 ```bash
-luigi-ssh-manager
+ssh-luigi
 ```
 
 Un menu interactif apparaîtra vous permettant de :
