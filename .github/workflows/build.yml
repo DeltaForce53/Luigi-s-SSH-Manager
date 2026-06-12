@@ -16,6 +16,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -46,7 +47,7 @@ jobs:
     - name: Build Executable (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        python -m nuitka --standalone --onefile --macos-app-icon=assets/icon.png --output-filename=luigi-ssh-manager ssh-manager.py
+        python -m nuitka --standalone --onefile --output-filename=luigi-ssh-manager ssh-manager.py
 
     - name: Build Executable (Linux)
       if: matrix.os == 'ubuntu-latest'
